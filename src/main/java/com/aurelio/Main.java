@@ -19,6 +19,13 @@ public class Main extends Application {
         GameView gameView = new GameView();
         InputHandler inputHandler = new InputHandler(gameState, gameView);
 
+        gameView.setOnRestart(() -> {
+            gameState.restart();
+            gameView.hideGameOver();
+            gameView.render(gameState);
+            gameView.getRoot().requestFocus();
+        });
+
         gameView.render(gameState);
 
         Scene scene = new Scene(gameView.getRoot(), 1000, 1000, Color.web("#e6d7be"));

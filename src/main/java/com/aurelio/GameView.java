@@ -1,62 +1,165 @@
 package com.aurelio;
 
+import javafx.animation.*;
 import javafx.geometry.Pos;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.effect.DropShadow;
-import javafx.scene.layout.ColumnConstraints;
-import javafx.scene.layout.GridPane;
-import javafx.scene.layout.RowConstraints;
-import javafx.scene.layout.StackPane;
+import javafx.scene.effect.GaussianBlur;
+import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
+import javafx.util.Duration;
 
 public class GameView {
     private static final int GRID_SIZE = 4;
     private static final int TILE_SIZE = 120;
+    private static final int MILLISECONDS = 500;
 
-    private final GridPane root;
+    private final StackPane root;
+    private final StackPane overlay;
+    private final GridPane board;
+    private final Button restartButton;
+    private final Label scoreTitleLabel;
+    private final Label scoreValueLabel;
+    private final VBox scoreBox;
+    private final VBox gameLayout;
+    private final Label gameOverLabel;
+    private final VBox gameOverContent;
+    private final GaussianBlur gameOverBlur;
 
     public GameView() {
-        root = new GridPane();
+        root = new StackPane();
+        board = new GridPane();
+        overlay = new StackPane();
+
+        scoreTitleLabel = new Label("SCORE");
+        scoreValueLabel = new Label("0");
+        scoreBox = new VBox(4, scoreTitleLabel, scoreValueLabel);
+        gameLayout = new VBox(20, scoreBox, board);
+
+        restartButton = new Button("RESTART");
+        gameOverLabel = new Label("GAME OVER");
+        gameOverContent = new VBox(40);
+        gameOverContent.getChildren().addAll(gameOverLabel, restartButton);
+        gameOverBlur = new GaussianBlur(0);
+
         setupLayout();
+        setupOverlay();
+        setupScoreLabels();
+        setupScoreBox();
+        setupGameLayout();
+        setupGameOverLabel();
+        setupRestartButton();
+        setupGameOverContent();
     }
 
-    public GridPane getRoot() {
+    public StackPane getRoot() {
         return root;
     }
 
+    /// SETUP
+
     private void setupLayout() {
-        root.setAlignment(Pos.CENTER);
-        root.setFocusTraversable(true);
-        root.setHgap(10);
-        root.setVgap(10);
+        board.setAlignment(Pos.CENTER);
+        board.setFocusTraversable(true);
+        board.setHgap(10);
+        board.setVgap(10);
 
         for (int i = 0; i < GRID_SIZE; i++) {
             ColumnConstraints col = new ColumnConstraints();
             col.setMinWidth(TILE_SIZE);
             col.setPrefWidth(TILE_SIZE);
             col.setMaxWidth(TILE_SIZE);
-            root.getColumnConstraints().add(col);
+            board.getColumnConstraints().add(col);
 
             RowConstraints row = new RowConstraints();
             row.setMinHeight(TILE_SIZE);
             row.setPrefHeight(TILE_SIZE);
             row.setMaxHeight(TILE_SIZE);
-            root.getRowConstraints().add(row);
+            board.getRowConstraints().add(row);
         }
+
+        root.setStyle("-fx-background-color: #e6d7be;");
+
+        root.getChildren().add(gameLayout);
+        root.getChildren().add(overlay);
     }
 
+    private void setupScoreLabels() {
+        scoreTitleLabel.setFont(Font.font("Consolas", FontWeight.BOLD, 60));
+        scoreTitleLabel.setStyle("-fx-text-fill: #755a2d;");
+
+        scoreValueLabel.setFont(Font.font("Consolas", FontWeight.BOLD, 70));
+        scoreValueLabel.setStyle("-fx-text-fill: #533f20;");
+    }
+
+    private void setupScoreBox() {
+        scoreBox.setAlignment(Pos.CENTER);
+
+    }private void setupGameLayout() {
+        gameLayout.setAlignment(Pos.CENTER);
+    }
+
+    private void setupOverlay() {
+        overlay.prefWidthProperty().bind(root.widthProperty());
+        overlay.prefHeightProperty().bind(root.heightProperty());
+        overlay.setStyle("-fx-background-color: rgba(230, 215, 190, 0.5);");
+        overlay.setVisible(false);
+        overlay.setOpacity(0);
+
+        gameOverContent.setAlignment(Pos.CENTER);
+    }
+
+    private void setupGameOverLabel() {
+        gameOverLabel.setFont(Font.font("Consolas", FontWeight.BOLD, 10));
+        gameOverLabel.setStyle("-fx-text-fill: #533f20;");
+    }
+
+    private void setupRestartButton() {
+        String normalStyle =
+                "-fx-background-color: rgba(117, 90, 45, 0.0);" +
+                        "-fx-text-fill: #533f20;" +
+                        "-fx-background-radius: 999;" +
+                        "-fx-border-radius: 999;" +
+                        "-fx-padding: 12 32 12 32;";
+
+        String hoverStyle =
+                "-fx-background-color: rgba(117, 90, 45, 0.25);" +
+                        "-fx-text-fill: #533f20;" +
+                        "-fx-background-radius: 999;" +
+                        "-fx-border-radius: 999;" +
+                        "-fx-padding: 12 32 12 32;";
+
+        restartButton.setFont(Font.font("Consolas", FontWeight.BOLD, 40));
+        restartButton.setStyle(normalStyle);
+
+        restartButton.setOnMouseEntered(event -> restartButton.setStyle(hoverStyle));
+        restartButton.setOnMouseExited(event -> restartButton.setStyle(normalStyle));
+    }
+
+    private void setupGameOverContent() {
+        gameOverContent.setAlignment(Pos.CENTER);
+        overlay.getChildren().add(gameOverContent);
+    }
+
+    /// RENDER
+
     public void render(GameState gameState) {
-        root.getChildren().clear();
+        board.getChildren().clear();
+
+        scoreValueLabel.setText(String.valueOf(gameState.getScore()));
 
         for (int row = 0; row < GRID_SIZE; row++) {
             for (int col = 0; col < GRID_SIZE; col++) {
                 StackPane tile = createTile(gameState.getValue(row, col));
-                root.add(tile, col, row);
+                board.add(tile, col, row);
             }
         }
     }
+
+    /// TILES
 
     private StackPane createTile(int value) {
         StackPane tile = new StackPane();
@@ -127,7 +230,113 @@ public class GameView {
         return String.format("#%02x%02x%02x", r, g, b);
     }
 
+    /// GAME OVER
+
+    public void showGameOver() {
+        overlay.setVisible(true);
+        overlay.setOpacity(0);
+
+        gameOverLabel.setOpacity(1);
+        gameOverLabel.setScaleX(150);
+        gameOverLabel.setScaleY(150);
+
+        restartButton.setOpacity(0);
+        restartButton.setScaleX(0);
+        restartButton.setScaleY(0);
+
+        board.setEffect(gameOverBlur);
+
+        Timeline blurAnimation = new Timeline(
+                new KeyFrame(Duration.millis(MILLISECONDS),
+                        new KeyValue(gameOverBlur.radiusProperty(), 12))
+        );
+
+        FadeTransition fadeGameOver = new FadeTransition(Duration.millis(MILLISECONDS), overlay);
+        fadeGameOver.setFromValue(0);
+        fadeGameOver.setToValue(1);
+
+        ScaleTransition scaleGameOver = new ScaleTransition(Duration.millis(MILLISECONDS), gameOverLabel);
+        scaleGameOver.setFromX(150);
+        scaleGameOver.setFromY(150);
+        scaleGameOver.setToX(10);
+        scaleGameOver.setToY(10);
+        scaleGameOver.setInterpolator(Interpolator.EASE_OUT);
+
+        FadeTransition fadeRestart = new FadeTransition(Duration.millis(MILLISECONDS), restartButton);
+        fadeRestart.setFromValue(0);
+        fadeRestart.setToValue(1);
+
+        ScaleTransition scaleRestart = new ScaleTransition(Duration.millis(MILLISECONDS), restartButton);
+        scaleRestart.setFromX(0);
+        scaleRestart.setFromY(0);
+        scaleRestart.setToX(1);
+        scaleRestart.setToY(1);
+        scaleRestart.setInterpolator(Interpolator.EASE_OUT);
+
+        scaleGameOver.setOnFinished(event -> {
+            fadeRestart.play();
+            scaleRestart.play();
+        });
+
+        blurAnimation.play();
+        fadeGameOver.play();
+        scaleGameOver.play();
+    }
+
+    public void hideGameOver() {
+        FadeTransition fadeOutOverlay = new FadeTransition(Duration.millis(MILLISECONDS), overlay);
+        fadeOutOverlay.setFromValue(overlay.getOpacity());
+        fadeOutOverlay.setToValue(0);
+
+        FadeTransition fadeOutLabel = new FadeTransition(Duration.millis(MILLISECONDS), gameOverLabel);
+        fadeOutLabel.setFromValue(gameOverLabel.getOpacity());
+        fadeOutLabel.setToValue(0);
+
+        FadeTransition fadeOutRestart = new FadeTransition(Duration.millis(MILLISECONDS), restartButton);
+        fadeOutRestart.setFromValue(restartButton.getOpacity());
+        fadeOutRestart.setToValue(0);
+
+        if (board.getEffect() instanceof GaussianBlur blur) {
+            Timeline blurOut = new Timeline(
+                    new KeyFrame(Duration.millis(MILLISECONDS),
+                            new KeyValue(blur.radiusProperty(), 0))
+            );
+
+            blurOut.setOnFinished(event -> board.setEffect(null));
+            blurOut.play();
+        }
+
+        fadeOutOverlay.setOnFinished(event -> {
+            overlay.setVisible(false);
+            overlay.setOpacity(0);
+
+            gameOverLabel.setOpacity(1);
+            gameOverLabel.setScaleX(1);
+            gameOverLabel.setScaleY(1);
+
+            restartButton.setOpacity(1);
+            restartButton.setScaleX(1);
+            restartButton.setScaleY(1);
+
+            board.setEffect(null);
+        });
+
+        fadeOutOverlay.play();
+        fadeOutLabel.play();
+        fadeOutRestart.play();
+    }
+
+    public void setOnRestart(Runnable action) {
+        restartButton.setOnAction(event -> action.run());
+    }
+
+    /// HELPERS
+
     private int getLevel(int value) {
         return (int) (Math.log(value) / Math.log(2));
+    }
+
+    public void setScore(int score) {
+        scoreValueLabel.setText(String.valueOf(score));
     }
 }

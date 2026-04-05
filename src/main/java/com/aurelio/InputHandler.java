@@ -13,6 +13,11 @@ public class InputHandler {
     }
 
     public void handle(KeyEvent event) {
+        if (gameState.isGameOver())
+            return;
+
+        boolean handled = true;
+
         if (event.getCode() == KeyCode.UP) {
             gameState.moveUp();
         } else if (event.getCode() == KeyCode.DOWN) {
@@ -21,8 +26,19 @@ public class InputHandler {
             gameState.moveRight();
         } else if (event.getCode() == KeyCode.LEFT) {
             gameState.moveLeft();
+        } else {
+            handled = false;
+        }
+
+        if (!handled) {
+            return;
         }
 
         gameView.render(gameState);
+
+        if (gameState.checkLose()) {
+            gameState.markGameOver();
+            gameView.showGameOver();
+        }
     }
 }

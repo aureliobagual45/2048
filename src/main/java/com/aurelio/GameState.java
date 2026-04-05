@@ -6,9 +6,13 @@ import java.util.Random;
 
 public class GameState {
     private final int[][] grid;
+    private boolean gameOver;
+    private int score;
 
     public GameState() {
         grid = new int[4][4];
+        gameOver = false;
+        score = 0;
         setupGrid();
     }
 
@@ -19,28 +23,17 @@ public class GameState {
             }
         }
 
-        grid[0][0] = 2;
-        grid[0][1] = 2;
+        spawnRandomTile();
+        spawnRandomTile();
     }
 
     public void moveUp() {
         boolean moved = false;
 
         for (int col = 0; col < 4; col++) {
-            int[] line = new int[4];
-
-            for (int row = 0; row < 4; row++) {
-                line[row] = grid[row][col];
-            }
-
-            int[] newLine = processLine(line);
-
-            for (int row = 0; row < 4; row++) {
-                if (grid[row][col] != newLine[row]) {
-                    moved = true;
-                }
-
-                grid[row][col] = newLine[row];
+            int[] newLine = processLine(getColumn(col));
+            if (writeColumn(col, newLine)) {
+                moved = true;
             }
         }
 
@@ -53,22 +46,12 @@ public class GameState {
         boolean moved = false;
 
         for (int col = 0; col < 4; col++) {
-            int[] line = new int[4];
-
-            for (int row = 0; row < 4; row++) {
-                line[row] = grid[row][col];
-            }
-
-            int[] newLine = reverseLine(line);
+            int[] newLine = reverseLine(getColumn(col));
             newLine = processLine(newLine);
             newLine = reverseLine(newLine);
 
-            for (int row = 0; row < 4; row++) {
-                if (grid[row][col] != newLine[row]) {
-                    moved = true;
-                }
-
-                grid[row][col] = newLine[row];
+            if (writeColumn(col, newLine)) {
+                moved = true;
             }
         }
 
@@ -81,22 +64,12 @@ public class GameState {
         boolean moved = false;
 
         for (int row = 0; row < 4; row++) {
-            int[] line = new int[4];
-
-            for (int col = 0; col < 4; col++) {
-                line[col] = grid[row][col];
-            }
-
-            int[] newLine = reverseLine(line);
+            int[] newLine = reverseLine(getRow(row));
             newLine = processLine(newLine);
             newLine = reverseLine(newLine);
 
-            for (int col = 0; col < 4; col++) {
-                if (grid[row][col] != newLine[col]) {
-                    moved = true;
-                }
-
-                grid[row][col] = newLine[col];
+            if (writeRow(row, newLine)) {
+                moved = true;
             }
         }
 
@@ -109,26 +82,55 @@ public class GameState {
         boolean moved = false;
 
         for (int row = 0; row < 4; row++) {
-            int[] line = new int[4];
-
-            for (int col = 0; col < 4; col++) {
-                line[col] = grid[row][col];
-            }
-
-            int[] newLine = processLine(line);
-
-            for (int col = 0; col < 4; col++) {
-                if (grid[row][col] != newLine[col]) {
-                    moved = true;
-                }
-
-                grid[row][col] = newLine[col];
+            int[] newLine = processLine(getRow(row));
+            if (writeRow(row, newLine)) {
+                moved = true;
             }
         }
 
         if (moved) {
             spawnRandomTile();
         }
+    }
+
+    private int[] getRow(int row) {
+        return grid[row].clone();
+    }
+
+    private boolean writeRow(int row, int[] newLine) {
+        boolean changed = false;
+
+        for (int col = 0; col < 4; col++) {
+            if (grid[row][col] != newLine[col]) {
+                changed = true;
+            }
+            grid[row][col] = newLine[col];
+        }
+
+        return changed;
+    }
+
+    private int[] getColumn(int col) {
+        int[] column = new int[4];
+
+        for (int row = 0; row < 4; row++) {
+            column[row] = grid[row][col];
+        }
+
+        return column;
+    }
+
+    private boolean writeColumn(int col, int[] newLine) {
+        boolean changed = false;
+
+        for (int row = 0; row < 4; row++) {
+            if (grid[row][col] != newLine[row]) {
+                changed = true;
+            }
+            grid[row][col] = newLine[row];
+        }
+
+        return changed;
     }
 
     private int[] compressLine(int[] line) {
@@ -190,7 +192,9 @@ public class GameState {
 
         Random random = new Random();
         int[] cell = emptyCells.get(random.nextInt(emptyCells.size()));
-        grid[cell[0]][cell[1]] = random.nextDouble() < 0.9 ? 2 : 4;
+        int generatedTile = random.nextDouble() < 0.9 ? 2 : 4;
+        grid[cell[0]][cell[1]] = generatedTile;
+        score += generatedTile;
     }
 
     public boolean checkLose() {
@@ -212,12 +216,29 @@ public class GameState {
         return true;
     }
 
+    public boolean isGameOver() {
+        return gameOver;
+    }
+
+    public void markGameOver() {
+        gameOver = true;
+    }
+
+    public void restart() {
+        gameOver = false;
+        setupGrid();
+    }
+
     public int getValue(int row, int col) {
         return grid[row][col];
     }
 
     public void setValue(int row, int col, int value) {
         grid[row][col] = value;
+    }
+
+    public int getScore() {
+        return score;
     }
 
     public int[][] getGrid() {
