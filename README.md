@@ -4,7 +4,7 @@ A desktop implementation of *2048* built with *Java 21* and *JavaFX 21*.
 
 This project started as a straightforward clone and evolved into a more structured application with animation sequencing, undo support, leaderboard persistence, confirmation overlays, and screen-scale adaptation.
 
-* Highlights
+*Highlights
 
 - Built with JavaFX for a native desktop UI
 - Deterministic undo system with bounded history
@@ -13,7 +13,7 @@ This project started as a straightforward clone and evolved into a more structur
 - Side control panels for undo, reset, and exit
 - Global scaling based on screen size to preserve layout proportions across different resolutions
 
-* Tech Stack
+*Tech Stack
 
 - Java 21
 - JavaFX 21
