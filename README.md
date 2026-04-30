@@ -4,7 +4,7 @@ A desktop implementation of *2048* built with *Java 21* and *JavaFX 21*.
 
 This project started as a straightforward clone and evolved into a more structured application with animation sequencing, undo support, leaderboard persistence, confirmation overlays, and screen-scale adaptation.
 
-*Highlights
+#Highlights
 
 - Built with JavaFX for a native desktop UI
 - Deterministic undo system with bounded history
@@ -13,13 +13,13 @@ This project started as a straightforward clone and evolved into a more structur
 - Side control panels for undo, reset, and exit
 - Global scaling based on screen size to preserve layout proportions across different resolutions
 
-*Tech Stack
+#Tech Stack
 
 - Java 21
 - JavaFX 21
 - Maven
 
-* Features
+#Features
 
 - Classic 4x4 2048 gameplay
 - Score tracking
@@ -33,7 +33,7 @@ This project started as a straightforward clone and evolved into a more structur
 - Top ranked scores displayed in the right-side panel
 - Responsive stage scaling through global UI scaling instead of per-component resizing
 
-* Project Structure
+#Project Structure
 
 - `GameState`
   - core game rules
@@ -62,14 +62,14 @@ This project started as a straightforward clone and evolved into a more structur
 - `LeaderboardStore`
   - score persistence in a local text file
 
-* Architecture Notes
+#Architecture Notes
 
 - The game logic is separated from the JavaFX rendering layer.
 - Move animations are based on explicit transition data (`MoveResult`, `TileMove`, `SpawnedTile`) instead of trying to infer animation state from the final board alone.
 - Undo restores both board state and RNG state. This prevents using undo to reroll future spawns.
 - The application uses a logical base resolution and scales the whole UI to fit different screen sizes while preserving proportions.
 
-* Running the Project
+#Running the Project
 
 - Requirements:
   - Java 21
@@ -87,7 +87,7 @@ mvn javafx:run
 mvn compile
 ```
 
-* Leaderboard Storage
+#Leaderboard Storage
 
 - Scores are stored locally in `leaderboard.txt`
 - Each line uses this format:
@@ -97,7 +97,7 @@ YYYY-MM-DD|score
 ```
 
 
-* What I Focused On
+#What I Focused On
 
 - Keeping gameplay logic deterministic and debuggable
 - Making animation phases explicit instead of mixing logical and visual state
